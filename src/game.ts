@@ -1,13 +1,14 @@
 import Phaser from 'phaser';
 import { MainScene } from './scenes/MainScene';
+import { InventoryUIScene } from './scenes/InventoryUIScene';
 
 // Configure your Phaser Game
-const config = {
+const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO, // Automatically choose WebGL or Canvas
     width: 800,        // Game width
     height: 600,       // Game height
     parent: 'game-container', // ID of the HTML element to put the canvas into
-    pixelArt: true,    // Good for 2D isometric games
+    pixelArt: true,    // Good for pixelart games
     physics: {
         default: 'arcade', // You'll likely use Arcade physics for 2D, or a custom one for isometric
         arcade: {
@@ -15,7 +16,7 @@ const config = {
             debug: false       // Set to true to see physics bodies
         }
     },
-    scene: [MainScene] // Array of scenes. The first one in the array starts automatically.
+    scene: [MainScene, InventoryUIScene] // Array of scenes. The first one in the array starts automatically.
 };
 
 // Create the game instance

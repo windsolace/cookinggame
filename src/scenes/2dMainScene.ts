@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { InventoryItem } from '../obj/InventoryItem';
+import { InventoryUIScene } from './InventoryUIScene';
 
 export class GameScene extends Phaser.Scene {
 
@@ -17,6 +18,8 @@ export class GameScene extends Phaser.Scene {
     }; // For WASD keys
     private collectableItems !: Phaser.Physics.Arcade.Group;
     private playerInventory: Map<string, InventoryItem> = new Map();
+    
+    public inventoryKey!: Phaser.Input.Keyboard.Key; // For toggling inventory UI
 
     constructor(){
         super("scene-game")
@@ -25,7 +28,11 @@ export class GameScene extends Phaser.Scene {
         this.load.tilemapTiledJSON('map_data', 'assets/tilemaps/map-2d-grass.tmj');
         this.load.image('backgroundMap', 'assets/tilemaps/bg.png'); //preload map image
         this.load.image('tileset_spritesheet_image',"assets/images/mapPack_tilesheet.png")
-        this.load.image('basicfood_sprites', 'assets/images/basicfood_sprites.png');
+        // this.load.image('basicfood_sprites', 'assets/images/basicfood_sprites.png');
+        this.load.spritesheet('basicfood_sprites', 'assets/images/basicfood_sprites.png', {
+            frameWidth: 32,
+            frameHeight: 32
+        });
         // Load character spritesheet
         this.load.spritesheet('player_character', 'assets/images/character_spritesheet.png', {
             frameWidth: 24,  // Adjust this to the actual width of one sprite frame
@@ -33,9 +40,19 @@ export class GameScene extends Phaser.Scene {
             // startFrame: 0, // Optional: Start frame index
             // endFrame: 7  // Optional: End frame index (if you only want a subset)
         });
+
+        this.load.on('loaderror', (file: Phaser.Loader.File) => { console.error(`Phaser Loader ERROR: Failed to load ${file.key} from ${file.url}`, file); });
+        this.load.on('filecomplete', (key: string, type: string, data: any) => {
+            console.log(`=== Phaser Loader: File '${key}' (${type}) loaded successfully. ===`);
+        });
     }
 
     create(){
+        // Add InventoryUIScene and launch it, keeping it active but hidden
+        this.scene.add('InventoryUIScene', InventoryUIScene, true); 
+        const inventoryUIScene = this.scene.get('InventoryUIScene') as InventoryUIScene;
+
+
         this.add.image(0,0,"backgroundMap").setOrigin(0,0);
         this.player = this.physics.add.sprite(100, 100, 'player_character', 0);
         this.player.setCollideWorldBounds(true);
@@ -56,7 +73,7 @@ export class GameScene extends Phaser.Scene {
 
         // --- Camera Setup ---
         this.cameras.main.setZoom(1);
-        this.cameras.main.startFollow(this.player   , true, 0.05, 0.05); // Smooth camera follow
+        this.cameras.main.startFollow(this.player, true, 0.05, 0.05); // Smooth camera follow
         console.log('Cameras set up.');
 
         // --- Create Tile layers ---
@@ -112,7 +129,7 @@ export class GameScene extends Phaser.Scene {
                         itemProps.textureKey, // Use the textureKey from Tiled properties
                         itemProps.frame      // Use the frame from Tiled properties
                     );
-                    itemSprite.setOrigin(0.5, 0.5); // Set origin to center for consistent positioning
+                    itemSprite.setOrigin(0.1, 2); // Set origin to center for consistent positioning
 
                     // Store item properties on the sprite itself for easy access later
                     itemSprite.setData('itemType', itemProps.itemType);
@@ -140,6 +157,15 @@ export class GameScene extends Phaser.Scene {
             this              // Context for the callback
         );
         console.log('Item collection overlap set up.');
+
+        // --- Input for Inventory UI Toggle ---
+        // this.inventoryKey = this.input.keyboard!.addKey(inventoryUIScene.KEYSTROKE_INVENTORY);
+        // this.inventoryKey.on('down', () => {
+        //     if (!inventoryUIScene.getIsVisible()) {
+        //         inventoryUIScene.updateInventoryData(this.playerInventory);
+        //         this.events.emit('toggleInventory', this.inventoryKey); // Emit event to open UI
+        //     }
+        // });
     }
 
     update(time:number, delta:number){
@@ -170,7 +196,7 @@ export class GameScene extends Phaser.Scene {
 
     }
 
-    collectItem(player: Phaser.Physics.Arcade.Sprite, itemSprite: Phaser.Physics.Arcade.Sprite):void{
+    private collectItem(player: Phaser.Physics.Arcade.Sprite, itemSprite: Phaser.Physics.Arcade.Sprite):void{
         // Ensure both are sprites for type safety
         // const collectable = itemSprite as Phaser.Physics.Arcade.Sprite;
 
@@ -202,6 +228,10 @@ export class GameScene extends Phaser.Scene {
         }
 
         console.log('Current Inventory:', this.playerInventory);
+
+        // Pass a copy of inventory data, using a reference to the live map
+        (this.scene.get('InventoryUIScene') as InventoryUIScene).updateInventoryData(this.playerInventory);
+        this.events.emit('inventoryUpdated', this.playerInventory);
 
         // Remove the item from the game world
         itemSprite.destroy(); // Remove the sprite
