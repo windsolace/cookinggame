@@ -1,3 +1,24 @@
+export const COOKING_EQUIPMENT_KEYS = Object.freeze({
+  POT: 'POT',
+});
+
+export const COOKING_UI_KEYS = Object.freeze({
+  INVENTORY: 'INVENTORY',
+});
+
+export const INGREDIENT_KEYS = Object.freeze({
+  BOG_HOG_MEAT: 'BOG_HOG_MEAT',
+  ROCK_POTATO: 'ROCK_POTATO',
+  WATER: 'WATER',
+});
+
+export const COOKED_ITEM_KEYS = Object.freeze({
+  BOG_HOG_STEW: 'BOG_HOG_STEW',
+  ROCK_POTATO_SOUP: 'ROCK_POTATO_SOUP',
+  BURNT_MESS: 'BURNT_MESS'
+});
+
+//------------- YT ASSETS ----------------------//
 export const BATTLE_BACKGROUND_ASSET_KEYS = Object.freeze({
   FOREST: 'FOREST',
 });
